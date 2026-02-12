@@ -5,7 +5,7 @@ import {
   Route, 
   Link, 
   useParams, 
-  useNavigate,
+  useNavigate, 
   useLocation
 } from 'react-router-dom';
 import { 
@@ -28,6 +28,8 @@ import {
   Twitter,
   Linkedin,
   Database,
+  Info,
+  Copy,
   Terminal,
   Code,
   CheckCircle2
@@ -37,6 +39,7 @@ import { loadState, saveState } from './storage';
 import { HandDrawnButton } from './components/HandDrawnButton';
 import { HandDrawnCard } from './components/HandDrawnCard';
 import { HandDrawnInput } from './components/HandDrawnInput';
+import { RichTextEditor } from './components/RichTextEditor';
 
 // --- Shared Layout Component ---
 const LayoutWrapper: React.FC<{ children: React.ReactNode, isAdmin?: boolean, config: LMSConfig, onLogout?: () => void }> = ({ 
@@ -46,7 +49,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode, isAdmin?: boolean, co
   const isDashboard = location.pathname === '/admin' || location.pathname.startsWith('/admin/edit');
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
+    <div className="min-h-screen relative overflow-x-hidden flex flex-col">
       <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-indigo-200/30 rounded-full blur-[120px] -z-10" />
       <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-violet-200/20 rounded-full blur-[120px] -z-10" />
 
@@ -84,24 +87,9 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode, isAdmin?: boolean, co
         </header>
       )}
 
-      <main className={`max-w-7xl mx-auto px-6 pb-24 ${isDashboard ? 'pt-8' : 'pt-10'}`}>
+      <main className={`max-w-7xl mx-auto px-6 pb-24 flex-1 ${isDashboard ? 'pt-8' : 'pt-10'}`}>
         {children}
       </main>
-
-      <footer className="bg-slate-900 py-16 text-white overflow-hidden relative mt-auto">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
-          <div className="space-y-4 text-center md:text-left">
-            <div className="flex items-center gap-3 justify-center md:justify-start">
-              <img src={config.logo} className="h-8 w-8 rounded bg-white/20" alt="Logo" />
-              <h4 className="text-xl font-bold">{config.brandName}</h4>
-            </div>
-            <p className="text-slate-400 max-w-xs">Profesionalisme dalam setiap kurikulum pendidikan digital.</p>
-          </div>
-          <div className="max-w-7xl text-center text-slate-500 text-sm font-medium">
-            <p>&copy; 2024 {config.brandName}. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
@@ -201,27 +189,57 @@ const CourseViewPage: React.FC<{
         {selectedLesson ? (
           <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
             {selectedLesson.type === 'video' ? (
-              <div className="aspect-video bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
-                <iframe 
-                  src={selectedLesson.videoUrl} 
-                  className="w-full h-full" 
-                  title={selectedLesson.title}
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen
-                />
+              <div className="space-y-6">
+                <div className="aspect-video bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
+                  <iframe 
+                    src={selectedLesson.videoUrl} 
+                    className="w-full h-full" 
+                    title={selectedLesson.title}
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  />
+                </div>
+                {selectedLesson.description && (
+                  <HandDrawnCard className="!p-10 shadow-xl border-none">
+                     <div className="prose prose-slate max-w-none">
+                       <h4 className="text-lg font-bold mb-4 flex items-center gap-2 border-b pb-2">
+                         <Info size={16} className="text-indigo-500" /> Deskripsi Materi
+                       </h4>
+                       <div 
+                         className="text-slate-600 leading-relaxed text-base"
+                         dangerouslySetInnerHTML={{ __html: selectedLesson.description }} 
+                       />
+                     </div>
+                  </HandDrawnCard>
+                )}
               </div>
             ) : (
-              <HandDrawnCard className="!p-12 shadow-2xl border-none">
-                <div className="prose prose-slate max-w-none">
-                  <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                    <FileText className="text-indigo-500" /> {selectedLesson.title}
-                  </h3>
-                  <div className="whitespace-pre-wrap text-slate-600 leading-relaxed text-lg">
-                    {selectedLesson.content}
+              <div className="space-y-6">
+                <HandDrawnCard className="!p-12 shadow-2xl border-none">
+                  <div className="prose prose-slate max-w-none">
+                    <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                      <FileText className="text-indigo-500" /> {selectedLesson.title}
+                    </h3>
+                    <div className="whitespace-pre-wrap text-slate-600 leading-relaxed text-lg">
+                      {selectedLesson.content}
+                    </div>
                   </div>
-                </div>
-              </HandDrawnCard>
+                </HandDrawnCard>
+                {selectedLesson.description && (
+                  <HandDrawnCard className="!p-10 shadow-xl border-none">
+                     <div className="prose prose-slate max-w-none">
+                       <h4 className="text-lg font-bold mb-4 flex items-center gap-2 border-b pb-2">
+                         <Info size={16} className="text-indigo-500" /> Informasi Tambahan
+                       </h4>
+                       <div 
+                         className="text-slate-600 leading-relaxed text-base"
+                         dangerouslySetInnerHTML={{ __html: selectedLesson.description }} 
+                       />
+                     </div>
+                  </HandDrawnCard>
+                )}
+              </div>
             )}
           </div>
         ) : (
@@ -229,10 +247,13 @@ const CourseViewPage: React.FC<{
             Pilih materi di samping untuk mulai belajar
           </div>
         )}
+      </div>
 
-        <HandDrawnCard className="!p-10 border-none shadow-xl bg-slate-50/50">
-           <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="shrink-0 relative group">
+      <div className="lg:col-span-4 space-y-6">
+         {/* Mentor Card */}
+         <HandDrawnCard className="!p-10 border-none shadow-xl bg-slate-50/50">
+           <div className="flex flex-col gap-6 items-start">
+              <div className="shrink-0 relative group self-center md:self-start">
                  <div className="h-32 w-32 rounded-3xl overflow-hidden shadow-lg border-4 border-white">
                     <img src={course.mentor.photo} alt={course.mentor.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                  </div>
@@ -260,7 +281,7 @@ const CourseViewPage: React.FC<{
 
            {isEditingMentor && mentorDraft && (
              <div className="mt-8 pt-8 border-t border-slate-200 space-y-6 animate-in slide-in-from-top-4 duration-300">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                    <HandDrawnInput label="Nama Mentor" value={mentorDraft.name} onChange={e => setMentorDraft({...mentorDraft, name: e.target.value})} />
                    <HandDrawnInput label="Role" value={mentorDraft.role} onChange={e => setMentorDraft({...mentorDraft, role: e.target.value})} />
                 </div>
@@ -272,9 +293,7 @@ const CourseViewPage: React.FC<{
              </div>
            )}
         </HandDrawnCard>
-      </div>
 
-      <div className="lg:col-span-4 space-y-6">
          <HandDrawnCard className="!p-8 shadow-xl border-none space-y-6 sticky top-28">
             <h4 className="text-xl font-black text-slate-900 tracking-tight">Kurikulum</h4>
             <div className="space-y-3">
@@ -417,9 +436,22 @@ CREATE TABLE IF NOT EXISTS courses (
                  <HandDrawnInput label="Brand Name" value={config.brandName} onChange={e => setConfig({...config, brandName: e.target.value})} />
                  <HandDrawnInput label="Hero Title" value={config.heroTitle} onChange={e => setConfig({...config, heroTitle: e.target.value})} />
                  <HandDrawnInput label="Hero Subtitle" multiline value={config.heroSubtitle} onChange={e => setConfig({...config, heroSubtitle: e.target.value})} />
-                 <HandDrawnInput label="Logo" type="file" onFileSelect={b => setConfig({...config, logo: b})} />
+                 <HandDrawnInput 
+                   label="Logo (PNG Transparan)" 
+                   type="file" 
+                   accept="image/png"
+                   onFileSelect={b => setConfig({...config, logo: b})} 
+                 />
+                 
+                 <div className="pt-6 border-t border-slate-100 mt-4">
+                    <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                       <Database className="w-4 h-4 text-indigo-500" /> Supabase Connection
+                    </h4>
+                    <HandDrawnInput label="Supabase URL" placeholder="https://xyz.supabase.co" value={config.supabaseUrl || ''} onChange={e => setConfig({...config, supabaseUrl: e.target.value})} />
+                    <HandDrawnInput label="Supabase Key" type="password" placeholder="anon-public-key" value={config.supabaseKey || ''} onChange={e => setConfig({...config, supabaseKey: e.target.value})} />
+                 </div>
               </div>
-              <div className="bg-slate-900 rounded-[2rem] p-6 text-white font-mono text-[10px] overflow-auto max-h-64">
+              <div className="bg-slate-900 rounded-[2rem] p-6 text-white font-mono text-[10px] overflow-auto max-h-64 self-start">
                  <div className="flex justify-between mb-4 border-b border-white/10 pb-2">
                     <span className="font-bold text-indigo-300">SQL SETUP SCRIPT</span>
                     <button onClick={() => { navigator.clipboard.writeText(sqlScript); alert('Copied!'); }} className="text-white bg-white/10 px-2 py-1 rounded">COPY</button>
@@ -477,6 +509,7 @@ const CourseEditor: React.FC<{ state: AppState, onSave: (s: AppState) => void }>
       title: 'Pelajaran Baru', 
       type, 
       content: 'Tulis isi materi...', 
+      description: '', // Initialize empty description
       order: course.lessons.length, 
       videoUrl: type === 'video' ? 'https://www.youtube.com/embed/qz0aGYrrlhU' : '' 
     };
@@ -497,7 +530,12 @@ const CourseEditor: React.FC<{ state: AppState, onSave: (s: AppState) => void }>
          <div className="lg:col-span-4 space-y-6">
             <HandDrawnCard className="space-y-6 !p-8 shadow-xl border-none">
                <h3 className="font-bold border-b pb-2">Informasi Kursus</h3>
-               <HandDrawnInput label="Thumbnail" type="file" onFileSelect={b => saveLocal({...course, thumbnail: b})} />
+               <HandDrawnInput 
+                 label="Thumbnail (Upload Image)" 
+                 type="file" 
+                 accept="image/*"
+                 onFileSelect={b => saveLocal({...course, thumbnail: b})} 
+               />
                <HandDrawnInput label="Judul" value={course.title} onChange={e => saveLocal({...course, title: e.target.value})} />
                <HandDrawnInput label="Deskripsi" multiline value={course.description} onChange={e => saveLocal({...course, description: e.target.value})} />
             </HandDrawnCard>
@@ -540,7 +578,14 @@ const CourseEditor: React.FC<{ state: AppState, onSave: (s: AppState) => void }>
                        {lesson.type === 'video' && (
                          <HandDrawnInput label="YouTube Embed URL" value={lesson.videoUrl} onChange={e => saveLocal({...course, lessons: course.lessons.map(l => l.id === lesson.id ? {...l, videoUrl: e.target.value} : l)})} />
                        )}
-                       <HandDrawnInput label="Detail Isi" multiline value={lesson.content} onChange={e => saveLocal({...course, lessons: course.lessons.map(l => l.id === lesson.id ? {...l, content: e.target.value} : l)})} />
+                       {lesson.type === 'text' && (
+                          <HandDrawnInput label="Isi Materi Text" multiline value={lesson.content} onChange={e => saveLocal({...course, lessons: course.lessons.map(l => l.id === lesson.id ? {...l, content: e.target.value} : l)})} />
+                       )}
+                       <RichTextEditor 
+                         label="Deskripsi / Isi Lanjutan (Advanced Editor)" 
+                         value={lesson.description} 
+                         onChange={(val) => saveLocal({...course, lessons: course.lessons.map(l => l.id === lesson.id ? {...l, description: val} : l)})} 
+                       />
                     </div>
                  </HandDrawnCard>
                ))}

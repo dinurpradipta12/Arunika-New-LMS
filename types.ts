@@ -7,6 +7,7 @@ export interface Lesson {
   type: LessonType;
   videoUrl?: string;
   content: string;
+  description: string; // New field for rich text description
   order: number;
 }
 

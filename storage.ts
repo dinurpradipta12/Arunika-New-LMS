@@ -40,6 +40,7 @@ const INITIAL_COURSES: Course[] = [
         type: 'video',
         videoUrl: 'https://www.youtube.com/embed/qz0aGYrrlhU',
         content: 'HTML adalah bahasa standar untuk membuat halaman web.',
+        description: '<p>Di video ini kita akan mempelajari dasar-dasar HTML.</p>',
         order: 0,
       },
       {
@@ -47,6 +48,7 @@ const INITIAL_COURSES: Course[] = [
         title: 'Materi Text: Dasar Tag',
         type: 'text',
         content: 'Berikut adalah daftar tag dasar HTML yang harus Anda ketahui...',
+        description: '<p>Catatan penting mengenai tag HTML.</p>',
         order: 1,
       },
     ],
@@ -57,7 +59,18 @@ export const loadState = (): AppState => {
   if (!isBrowser) return { config: INITIAL_CONFIG, courses: INITIAL_COURSES };
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Migrate existing lessons to have description field
+      parsed.courses = (parsed.courses || []).map((course: Course) => ({
+        ...course,
+        lessons: (course.lessons || []).map(lesson => ({
+          ...lesson,
+          description: lesson.description || ''
+        }))
+      }));
+      return parsed;
+    }
   } catch (e) {
     console.error('Failed to load state:', e);
   }
