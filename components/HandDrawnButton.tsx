@@ -3,7 +3,8 @@ import React from 'react';
 import { SHADOWS } from '../constants';
 
 interface HandDrawnButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  // Added 'accent' to the allowed variants to match the usage in the switch statement
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'accent';
   size?: 'sm' | 'md' | 'lg';
 }
 
