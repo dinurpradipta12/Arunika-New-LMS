@@ -610,8 +610,20 @@ const CourseEditor: React.FC<{ state: AppState, onSave: (s: AppState) => void }>
 
 // --- Main App ---
 const App: React.FC = () => {
-  const [state, setState] = useState<AppState>(loadState());
+  const [state, setState] = useState<AppState | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const loaded = loadState();
+      setState(loaded);
+    } catch (err) {
+      console.error("State load error:", err);
+    } finally {
+      setIsReady(true);
+    }
+  }, []);
 
   const handleLogin = (u: string, p: string) => {
     if (u === 'arunika' && p === 'ar4925') {
@@ -627,48 +639,49 @@ const App: React.FC = () => {
   };
 
   const handleSaveMentor = (cid: string, mentor: Mentor) => {
-    const updated = {...state, courses: state.courses.map(c => c.id === cid ? {...c, mentor} : c)};
+    if (!state) return;
+    const updated = {
+      ...state,
+      courses: state.courses.map(c =>
+        c.id === cid ? { ...c, mentor } : c
+      )
+    };
     handleSaveState(updated);
   };
 
+  if (!isReady || !state) {
+    return (
+      <div className="h-screen flex items-center justify-center text-slate-400">
+        Loading application...
+      </div>
+    );
+  }
+
   return (
     <Router>
-      <LayoutWrapper isAdmin={isAdmin} config={state.config} onLogout={() => setIsAdmin(false)}>
+      <LayoutWrapper
+        isAdmin={isAdmin}
+        config={state.config}
+        onLogout={() => setIsAdmin(false)}
+      >
         <Routes>
           <Route path="/" element={<HomePage courses={state.courses} config={state.config} />} />
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/course/:courseId" element={<CourseViewPage courses={state.courses} isAdmin={isAdmin} onSaveMentor={handleSaveMentor} />} />
-          <Route path="/admin" element={isAdmin ? <AdminDashboard state={state} onSave={handleSaveState} onLogout={() => setIsAdmin(false)} /> : <LoginPage onLogin={handleLogin} />} />
-          <Route path="/admin/edit/:courseId" element={isAdmin ? <CourseEditor state={state} onSave={handleSaveState} /> : <LoginPage onLogin={handleLogin} />} />
+          <Route path="/admin" element={
+            isAdmin
+              ? <AdminDashboard state={state} onSave={handleSaveState} onLogout={() => setIsAdmin(false)} />
+              : <LoginPage onLogin={handleLogin} />
+          } />
+          <Route path="/admin/edit/:courseId" element={
+            isAdmin
+              ? <CourseEditor state={state} onSave={handleSaveState} />
+              : <LoginPage onLogin={handleLogin} />
+          } />
         </Routes>
       </LayoutWrapper>
     </Router>
   );
 };
-
-const LoginPage: React.FC<{ onLogin: (u: string, p: string) => boolean }> = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate();
-  return (
-    <div className="max-w-md mx-auto py-20 px-4">
-       <div className="text-center mb-10 space-y-4">
-          <div className="h-20 w-20 bg-gradient-primary rounded-3xl flex items-center justify-center text-white text-4xl font-bold mx-auto shadow-2xl">☀️</div>
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Admin Area</h2>
-          <p className="text-slate-500 font-medium">Silahkan login untuk mengelola platform.</p>
-       </div>
-       <HandDrawnCard className="!p-10 border-none shadow-2xl">
-          <form onSubmit={e => { e.preventDefault(); if(onLogin(username, password)) navigate('/admin'); }} className="space-y-6">
-             <HandDrawnInput label="Username" value={username} onChange={e => setUsername(e.target.value)} placeholder="arunika" />
-             <HandDrawnInput label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
-             <HandDrawnButton type="submit" className="w-full h-14 rounded-2xl shadow-indigo-100">Sign In to Dashboard</HandDrawnButton>
-          </form>
-          <div className="mt-8 pt-8 border-t border-slate-100 text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
-             Protected Environment
-          </div>
-       </HandDrawnCard>
-    </div>
-  );
-}
 
 export default App;
