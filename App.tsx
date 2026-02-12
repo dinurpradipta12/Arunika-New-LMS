@@ -614,16 +614,36 @@ const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
+useEffect(() => {
+  const init = async () => {
     try {
       const loaded = loadState();
+
+      if (!loaded || !loaded.courses || !loaded.config) {
+        throw new Error("Invalid state structure");
+      }
+
       setState(loaded);
     } catch (err) {
       console.error("State load error:", err);
+
+      // Hard fallback supaya tidak blank
+      setState({
+        config: {
+          logo: 'https://cdn-icons-png.flaticon.com/512/3222/3222800.png',
+          brandName: 'Arunika Academy',
+          heroTitle: 'Belajar Kreatif Tanpa Batas',
+          heroSubtitle: 'Platform LMS profesional modern'
+        },
+        courses: []
+      });
     } finally {
       setIsReady(true);
     }
-  }, []);
+  };
+
+  init();
+}, []);
 
   const handleLogin = (u: string, p: string) => {
     if (u === 'arunika' && p === 'ar4925') {
@@ -649,13 +669,21 @@ const App: React.FC = () => {
     handleSaveState(updated);
   };
 
-  if (!isReady || !state) {
-    return (
-      <div className="h-screen flex items-center justify-center text-slate-400">
-        Loading application...
-      </div>
-    );
-  }
+if (!isReady) {
+  return (
+    <div className="h-screen flex items-center justify-center text-slate-400">
+      Initializing...
+    </div>
+  );
+}
+
+if (!state) {
+  return (
+    <div className="h-screen flex items-center justify-center text-red-500">
+      Failed to load application state.
+    </div>
+  );
+}
 
   return (
     <Router>
