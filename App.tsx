@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   HashRouter as Router, 
@@ -29,8 +28,6 @@ import {
   Twitter,
   Linkedin,
   Database,
-  Info,
-  Copy,
   Terminal,
   Code,
   CheckCircle2
