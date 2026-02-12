@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   HashRouter as Router, 
@@ -6,7 +7,8 @@ import {
   Link, 
   useParams, 
   useNavigate, 
-  useLocation
+  useLocation,
+  Navigate
 } from 'react-router-dom';
 import { 
   BookOpen, 
@@ -46,7 +48,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode, isAdmin?: boolean, co
   children, isAdmin, config, onLogout 
 }) => {
   const location = useLocation();
-  const isDashboard = location.pathname === '/admin' || location.pathname.startsWith('/admin/edit');
+  const isDashboard = location.pathname.startsWith('/admin/edit');
 
   return (
     <div className="min-h-screen relative overflow-x-hidden flex flex-col">
@@ -66,17 +68,16 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode, isAdmin?: boolean, co
             </Link>
             <nav className="flex items-center gap-4">
               {isAdmin ? (
-                <>
+                <div className="flex items-center gap-2">
                   <Link to="/admin">
                     <HandDrawnButton variant="secondary" size="sm">
-                      <Layout className="w-4 h-4 mr-2" />
-                      Dashboard
+                      <Layout className="w-4 h-4 mr-2" /> Dashboard
                     </HandDrawnButton>
                   </Link>
                   <HandDrawnButton onClick={onLogout} variant="ghost" size="sm" className="text-rose-500">
                     <LogOut className="w-5 h-5" />
                   </HandDrawnButton>
-                </>
+                </div>
               ) : (
                 <Link to="/login">
                   <HandDrawnButton variant="ghost" size="sm" className="text-slate-600">Admin Login</HandDrawnButton>
@@ -155,7 +156,7 @@ const CourseViewPage: React.FC<{
   onSaveMentor: (cid: string, mentor: Mentor) => void 
 }> = ({ courses, isAdmin, onSaveMentor }) => {
   const { courseId } = useParams();
-  const course = courses.find(c => c.id === courseId);
+  const course = courseId ? courses.find(c => c.id === courseId) : courses[0];
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isEditingMentor, setIsEditingMentor] = useState(false);
   const [mentorDraft, setMentorDraft] = useState<Mentor | null>(null);
@@ -247,13 +248,11 @@ const CourseViewPage: React.FC<{
             Pilih materi di samping untuk mulai belajar
           </div>
         )}
-      </div>
 
-      <div className="lg:col-span-4 space-y-6">
-         {/* Mentor Card */}
-         <HandDrawnCard className="!p-10 border-none shadow-xl bg-slate-50/50">
-           <div className="flex flex-col gap-6 items-start">
-              <div className="shrink-0 relative group self-center md:self-start">
+        {/* Mentor Card */}
+        <HandDrawnCard className="!p-10 border-none shadow-xl bg-slate-50/50">
+           <div className="flex flex-col md:flex-row gap-8 items-start">
+              <div className="shrink-0 relative group">
                  <div className="h-32 w-32 rounded-3xl overflow-hidden shadow-lg border-4 border-white">
                     <img src={course.mentor.photo} alt={course.mentor.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                  </div>
@@ -274,14 +273,14 @@ const CourseViewPage: React.FC<{
                  <p className="text-slate-500 text-sm leading-relaxed">{course.mentor.bio}</p>
                  <div className="flex gap-4">
                     {course.mentor.website && <a href={course.mentor.website} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-indigo-600 transition-colors"><Globe className="w-5 h-5" /></a>}
-                    {course.mentor.socials.twitter && <a href="#" className="text-slate-400 hover:text-indigo-400 transition-colors"><Twitter className="w-5 h-5" /></a>}
+                    {course.mentor.socials?.twitter && <a href="#" className="text-slate-400 hover:text-indigo-400 transition-colors"><Twitter className="w-5 h-5" /></a>}
                  </div>
               </div>
            </div>
 
            {isEditingMentor && mentorDraft && (
              <div className="mt-8 pt-8 border-t border-slate-200 space-y-6 animate-in slide-in-from-top-4 duration-300">
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    <HandDrawnInput label="Nama Mentor" value={mentorDraft.name} onChange={e => setMentorDraft({...mentorDraft, name: e.target.value})} />
                    <HandDrawnInput label="Role" value={mentorDraft.role} onChange={e => setMentorDraft({...mentorDraft, role: e.target.value})} />
                 </div>
@@ -293,7 +292,9 @@ const CourseViewPage: React.FC<{
              </div>
            )}
         </HandDrawnCard>
+      </div>
 
+      <div className="lg:col-span-4 space-y-6">
          <HandDrawnCard className="!p-8 shadow-xl border-none space-y-6 sticky top-28">
             <h4 className="text-xl font-black text-slate-900 tracking-tight">Kurikulum</h4>
             <div className="space-y-3">
@@ -436,22 +437,9 @@ CREATE TABLE IF NOT EXISTS courses (
                  <HandDrawnInput label="Brand Name" value={config.brandName} onChange={e => setConfig({...config, brandName: e.target.value})} />
                  <HandDrawnInput label="Hero Title" value={config.heroTitle} onChange={e => setConfig({...config, heroTitle: e.target.value})} />
                  <HandDrawnInput label="Hero Subtitle" multiline value={config.heroSubtitle} onChange={e => setConfig({...config, heroSubtitle: e.target.value})} />
-                 <HandDrawnInput 
-                   label="Logo (PNG Transparan)" 
-                   type="file" 
-                   accept="image/png"
-                   onFileSelect={b => setConfig({...config, logo: b})} 
-                 />
-                 
-                 <div className="pt-6 border-t border-slate-100 mt-4">
-                    <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-                       <Database className="w-4 h-4 text-indigo-500" /> Supabase Connection
-                    </h4>
-                    <HandDrawnInput label="Supabase URL" placeholder="https://xyz.supabase.co" value={config.supabaseUrl || ''} onChange={e => setConfig({...config, supabaseUrl: e.target.value})} />
-                    <HandDrawnInput label="Supabase Key" type="password" placeholder="anon-public-key" value={config.supabaseKey || ''} onChange={e => setConfig({...config, supabaseKey: e.target.value})} />
-                 </div>
+                 <HandDrawnInput label="Logo" type="file" onFileSelect={b => setConfig({...config, logo: b})} />
               </div>
-              <div className="bg-slate-900 rounded-[2rem] p-6 text-white font-mono text-[10px] overflow-auto max-h-64 self-start">
+              <div className="bg-slate-900 rounded-[2rem] p-6 text-white font-mono text-[10px] overflow-auto max-h-64">
                  <div className="flex justify-between mb-4 border-b border-white/10 pb-2">
                     <span className="font-bold text-indigo-300">SQL SETUP SCRIPT</span>
                     <button onClick={() => { navigator.clipboard.writeText(sqlScript); alert('Copied!'); }} className="text-white bg-white/10 px-2 py-1 rounded">COPY</button>
@@ -490,6 +478,7 @@ CREATE TABLE IF NOT EXISTS courses (
   );
 };
 
+// --- Course Editor ---
 const CourseEditor: React.FC<{ state: AppState, onSave: (s: AppState) => void }> = ({ state, onSave }) => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -509,7 +498,7 @@ const CourseEditor: React.FC<{ state: AppState, onSave: (s: AppState) => void }>
       title: 'Pelajaran Baru', 
       type, 
       content: 'Tulis isi materi...', 
-      description: '', // Initialize empty description
+      description: '',
       order: course.lessons.length, 
       videoUrl: type === 'video' ? 'https://www.youtube.com/embed/qz0aGYrrlhU' : '' 
     };
@@ -530,12 +519,7 @@ const CourseEditor: React.FC<{ state: AppState, onSave: (s: AppState) => void }>
          <div className="lg:col-span-4 space-y-6">
             <HandDrawnCard className="space-y-6 !p-8 shadow-xl border-none">
                <h3 className="font-bold border-b pb-2">Informasi Kursus</h3>
-               <HandDrawnInput 
-                 label="Thumbnail (Upload Image)" 
-                 type="file" 
-                 accept="image/*"
-                 onFileSelect={b => saveLocal({...course, thumbnail: b})} 
-               />
+               <HandDrawnInput label="Thumbnail" type="file" onFileSelect={b => saveLocal({...course, thumbnail: b})} />
                <HandDrawnInput label="Judul" value={course.title} onChange={e => saveLocal({...course, title: e.target.value})} />
                <HandDrawnInput label="Deskripsi" multiline value={course.description} onChange={e => saveLocal({...course, description: e.target.value})} />
             </HandDrawnCard>
@@ -578,14 +562,8 @@ const CourseEditor: React.FC<{ state: AppState, onSave: (s: AppState) => void }>
                        {lesson.type === 'video' && (
                          <HandDrawnInput label="YouTube Embed URL" value={lesson.videoUrl} onChange={e => saveLocal({...course, lessons: course.lessons.map(l => l.id === lesson.id ? {...l, videoUrl: e.target.value} : l)})} />
                        )}
-                       {lesson.type === 'text' && (
-                          <HandDrawnInput label="Isi Materi Text" multiline value={lesson.content} onChange={e => saveLocal({...course, lessons: course.lessons.map(l => l.id === lesson.id ? {...l, content: e.target.value} : l)})} />
-                       )}
-                       <RichTextEditor 
-                         label="Deskripsi / Isi Lanjutan (Advanced Editor)" 
-                         value={lesson.description} 
-                         onChange={(val) => saveLocal({...course, lessons: course.lessons.map(l => l.id === lesson.id ? {...l, description: val} : l)})} 
-                       />
+                       <HandDrawnInput label="Ringkasan / Isi Singkat" multiline value={lesson.content} onChange={e => saveLocal({...course, lessons: course.lessons.map(l => l.id === lesson.id ? {...l, content: e.target.value} : l)})} />
+                       <RichTextEditor label="Deskripsi Detail (Rich Text)" value={lesson.description} onChange={val => saveLocal({...course, lessons: course.lessons.map(l => l.id === lesson.id ? {...l, description: val} : l)})} />
                     </div>
                  </HandDrawnCard>
                ))}
@@ -596,6 +574,7 @@ const CourseEditor: React.FC<{ state: AppState, onSave: (s: AppState) => void }>
   );
 };
 
+// --- Login Page ---
 const LoginPage: React.FC<{ onLogin: (u: string, p: string) => boolean }> = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -617,6 +596,7 @@ const LoginPage: React.FC<{ onLogin: (u: string, p: string) => boolean }> = ({ o
   );
 }
 
+// --- Main App Component ---
 const App: React.FC = () => {
   const [state, setState] = useState<AppState | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
